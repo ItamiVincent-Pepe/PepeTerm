@@ -1,0 +1,86 @@
+﻿<Window x:Class="PepeTerm.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="PepeTerm" Height="650" Width="1280"
+        Background="{StaticResource BackgroundColor}"
+        WindowStartupLocation="CenterScreen"
+        Icon="pack://application:,,,/pepe.ico">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Боковая панель -->
+        <Border Background="{StaticResource PanelBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,1,0"
+                Grid.RowSpan="2">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="📋 Сохранённые"
+                           Style="{StaticResource LabelStyle}"
+                           FontSize="14" FontWeight="Bold"
+                           Margin="10,10,10,5"/>
+                <ListBox x:Name="SavedHostsList" Grid.Row="1"
+                         Background="{StaticResource PanelBrush}"
+                         Foreground="{StaticResource TextSecondaryBrush}"
+                         BorderBrush="Transparent" Margin="5,0,5,5"
+                         MouseDoubleClick="SavedHostsList_MouseDoubleClick"/>
+            </Grid>
+        </Border>
+
+        <!-- Основная область -->
+        <Grid Grid.Column="1" Grid.RowSpan="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Панель инструментов -->
+            <Border Background="{StaticResource ToolbarBrush}" Padding="8">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Протокол:" Style="{StaticResource LabelStyle}"/>
+                    <RadioButton x:Name="RadioTelnet" Content="Telnet"
+                                 IsChecked="True" Margin="0,0,8,0"
+                                 Style="{StaticResource RadioStyle}"/>
+                    <RadioButton x:Name="RadioSSH" Content="SSH"
+                                 Margin="0,0,10,0"
+                                 Style="{StaticResource RadioStyle}"/>
+
+                    <TextBlock Text="Хост:" Style="{StaticResource LabelStyle}"/>
+                    <TextBox x:Name="HostBox" Width="140" Margin="0,0,10,0"
+                             Style="{StaticResource InputStyle}" Text="192.168.1.1"/>
+
+                    <TextBlock Text="Порт:" Style="{StaticResource LabelStyle}"/>
+                    <TextBox x:Name="PortBox" Width="60" Margin="0,0,10,0"
+                             Style="{StaticResource InputStyle}" Text="23"/>
+
+                    <TextBlock Text="Логин:" Style="{StaticResource LabelStyle}"/>
+                    <TextBox x:Name="UsernameBox" Width="100" Margin="0,0,10,0"
+                             Style="{StaticResource InputStyle}"/>
+
+                    <TextBlock Text="Пароль:" Style="{StaticResource LabelStyle}"/>
+                    <PasswordBox x:Name="PasswordBox" Width="100" Margin="0,0,10,0"
+                                 Style="{StaticResource PasswordStyle}"/>
+
+                    <Button x:Name="ConnectButton" Content="⚡ Подключиться"
+                            Width="120" Style="{StaticResource PrimaryButton}"
+                            Click="ConnectButton_Click"/>
+                    <Button x:Name="SaveButton" Content="💾 Сохранить"
+                            Width="100" Margin="10,0,0,0"
+                            Style="{StaticResource SecondaryButton}"
+                            Click="SaveButton_Click"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Вкладки -->
+            <TabControl x:Name="SessionsTabControl" Grid.Row="1"
+                        Background="{StaticResource BackgroundColor}"
+                        BorderBrush="{StaticResource BorderBrush}"/>
+        </Grid>
+    </Grid>
+</Window>

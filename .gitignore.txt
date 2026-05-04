@@ -1,0 +1,39 @@
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build результаты
+bin/
+obj/
+out/
+
+# NuGet пакеты
+*.nupkg
+packages/
+*.nuget.props
+*.nuget.targets
+
+# Логи и временные файлы
+*.log
+*.tmp
+*.cache
+
+# ReSharper
+_ReSharper*/
+*.DotSettings.user
+
+# Rider
+.idea/
+
+# Windows
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# Публикация
+publish/
+*.pubxml
+*.pubxml.user

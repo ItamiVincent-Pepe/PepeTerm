@@ -1,0 +1,63 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============ ЦВЕТА ============ -->
+    <Color x:Key="BgDark">#1E1E1E</Color>
+    <Color x:Key="BgPanel">#252526</Color>
+    <Color x:Key="BgInput">#3C3C3C</Color>
+    <Color x:Key="BgToolbar">#2D2D2D</Color>
+    <Color x:Key="Accent">#0E639C</Color>
+    <Color x:Key="Border">#333333</Color>
+    <Color x:Key="TextPrimary">White</Color>
+    <Color x:Key="TextSecondary">#CCCCCC</Color>
+    <Color x:Key="BorderInput">#555555</Color>
+
+    <!-- ============ КИСТИ ============ -->
+    <SolidColorBrush x:Key="BackgroundColor" Color="{StaticResource BgDark}"/>
+    <SolidColorBrush x:Key="PanelBrush" Color="{StaticResource BgPanel}"/>
+    <SolidColorBrush x:Key="InputBrush" Color="{StaticResource BgInput}"/>
+    <SolidColorBrush x:Key="ToolbarBrush" Color="{StaticResource BgToolbar}"/>
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Accent}"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource Border}"/>
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimary}"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondary}"/>
+    <SolidColorBrush x:Key="BorderInputBrush" Color="{StaticResource BorderInput}"/>
+
+    <!-- ============ СТИЛИ ============ -->
+    <Style x:Key="LabelStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Margin" Value="0,0,5,0"/>
+    </Style>
+
+    <Style x:Key="RadioStyle" TargetType="RadioButton">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="GroupName" Value="Protocol"/>
+    </Style>
+
+    <Style x:Key="InputStyle" TargetType="TextBox">
+        <Setter Property="Background" Value="{StaticResource InputBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderInputBrush}"/>
+    </Style>
+
+    <Style x:Key="PasswordStyle" TargetType="PasswordBox">
+        <Setter Property="Background" Value="{StaticResource InputBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderInputBrush}"/>
+    </Style>
+
+    <Style x:Key="PrimaryButton" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+    </Style>
+
+    <Style x:Key="SecondaryButton" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource InputBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderInputBrush}"/>
+    </Style>
+
+</ResourceDictionary>
