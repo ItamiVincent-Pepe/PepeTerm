@@ -1,7 +1,7 @@
 ﻿<Window x:Class="PepeTerm.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="PepeTerm" Height="650" Width="1280"
+        Title="PepeTerm" Height="680" Width="1280"
         Background="{StaticResource BackgroundColor}"
         WindowStartupLocation="CenterScreen"
         Icon="pack://application:,,,/pepe.ico">
