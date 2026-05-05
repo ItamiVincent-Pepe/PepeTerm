@@ -1,46 +1,51 @@
 ﻿using System;
+using System.IO.Ports;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Renci.SshNet;
 
 namespace PepeTerm.Controls
 {
     /// <summary>
-    /// Терминал для SSH-подключений.
-    /// Подключается к удалённому серверу по SSH и эмулирует терминал xterm.
+    /// Терминал для Serial-подключений (COM-порт).
+    /// Подключается к устройству через последовательный порт (RS-232).
     /// </summary>
-    public partial class SshTerminalView : System.Windows.Controls.UserControl
+    public partial class SerialTerminalView : System.Windows.Controls.UserControl
     {
-        /// <summary>SSH-клиент для подключения к серверу</summary>
-        private SshClient? _sshClient;
-        /// <summary>Поток shell-сессии (эмуляция терминала)</summary>
-        private ShellStream? _shellStream;
+        /// <summary>Последовательный порт для подключения к устройству</summary>
+        private SerialPort? _serialPort;
         /// <summary>Токен для отмены асинхронных операций при отключении</summary>
         private CancellationTokenSource? _cts;
 
-        public SshTerminalView()
+        public SerialTerminalView()
         {
             InitializeComponent();
+            TerminalTextBox.IsReadOnly = true; // Блокируем прямой ввод — всё через PreviewKeyDown
         }
 
         /// <summary>
-        /// Подключается к удалённому хосту по SSH (порт 22 по умолчанию)
+        /// Подключается к устройству через COM-порт.
+        /// Параметры по умолчанию: 9600 бод, 8 бит, без чётности, 1 стоп-бит (стандарт Cisco).
         /// </summary>
-        public async Task ConnectAsync(string host, int port, string username, string password)
+        public async Task ConnectAsync(string portName, int baudRate = 9600, int dataBits = 8, Parity parity = Parity.None, StopBits stopBits = StopBits.One)
         {
-            _sshClient = new SshClient(host, port, username, password);
-            await Task.Run(() => _sshClient.Connect()); // Подключение в фоне, чтобы не морозить UI
-            _shellStream = _sshClient.CreateShellStream("xterm", 80, 24, 800, 600, 1024);
+            _serialPort = new SerialPort(portName, baudRate, parity, dataBits, stopBits)
+            {
+                Encoding = Encoding.UTF8,
+                ReadTimeout = 500,  // Таймаут чтения — чтобы не зависать навсегда
+                WriteTimeout = 500  // Таймаут записи
+            };
+
+            await Task.Run(() => _serialPort.Open()); // Открываем порт в фоне
             _cts = new CancellationTokenSource();
             _ = Task.Run(() => ReadLoop(_cts.Token)); // Запускаем чтение в фоне
         }
 
         /// <summary>
-        /// Бесконечный цикл чтения данных от SSH-сервера.
+        /// Бесконечный цикл чтения данных с COM-порта.
         /// Принимает байты и выводит их в терминал.
         /// </summary>
         private async Task ReadLoop(CancellationToken token)
@@ -48,30 +53,34 @@ namespace PepeTerm.Controls
             byte[] buffer = new byte[8192];
             try
             {
-                while (!token.IsCancellationRequested && _sshClient is not null && _sshClient.IsConnected)
+                while (!token.IsCancellationRequested && _serialPort is not null && _serialPort.IsOpen)
                 {
-                    int bytesRead = await _shellStream!.ReadAsync(buffer.AsMemory(0, buffer.Length), token);
-                    if (bytesRead == 0) break;
-                    string text = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                    await Dispatcher.InvokeAsync(() =>
+                    try
                     {
-                        TerminalTextBox.AppendText(text);
-                        TerminalTextBox.ScrollToEnd();
-                        TerminalTextBox.CaretIndex = TerminalTextBox.Text.Length;
-                    });
+                        int bytesRead = await _serialPort.BaseStream.ReadAsync(buffer.AsMemory(0, buffer.Length), token);
+                        if (bytesRead == 0) break;
+                        string text = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                        await Dispatcher.InvokeAsync(() =>
+                        {
+                            TerminalTextBox.AppendText(text);
+                            TerminalTextBox.ScrollToEnd();
+                            TerminalTextBox.CaretIndex = TerminalTextBox.Text.Length;
+                        });
+                    }
+                    catch (TimeoutException) { continue; } // Нет данных — ждём дальше
                 }
             }
             catch (OperationCanceledException) { /* Нормальное завершение */ }
-            catch { /* Соединение разорвано */ }
+            catch { /* Порт отключён */ }
         }
 
         /// <summary>
-        /// Перехватывает нажатия клавиш и отправляет их SSH-серверу.
+        /// Перехватывает нажатия клавиш и отправляет их в COM-порт.
         /// Блокирует стандартную обработку TextBox'ом.
         /// </summary>
         private async void TerminalTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            if (_shellStream is null || _sshClient is null || !_sshClient.IsConnected) return;
+            if (_serialPort is null || !_serialPort.IsOpen) return;
 
             // Преобразуем клавишу в escape-последовательность или символ
             string? charToSend = e.Key switch
@@ -93,7 +102,7 @@ namespace PepeTerm.Controls
             if (!string.IsNullOrEmpty(charToSend))
             {
                 byte[] data = Encoding.UTF8.GetBytes(charToSend);
-                await _shellStream.WriteAsync(data.AsMemory(0, data.Length));
+                await _serialPort.BaseStream.WriteAsync(data.AsMemory(0, data.Length));
             }
             e.Handled = true; // Блокируем стандартную обработку клавиши
         }
@@ -111,7 +120,7 @@ namespace PepeTerm.Controls
             return s;
         }
 
-        /// <summary>Закрывает SSH-соединение и освобождает ресурсы</summary>
-        public void Disconnect() { _cts?.Cancel(); _shellStream?.Close(); _sshClient?.Disconnect(); _sshClient?.Dispose(); }
+        /// <summary>Закрывает COM-порт и освобождает ресурсы</summary>
+        public void Disconnect() { _cts?.Cancel(); _serialPort?.Close(); _serialPort?.Dispose(); }
     }
 }

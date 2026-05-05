@@ -9,27 +9,41 @@ using System.Windows.Input;
 
 namespace PepeTerm.Controls
 {
-    public partial class TerminalView : UserControl
+    /// <summary>
+    /// Терминал для Telnet-подключений.
+    /// Подключается к удалённому хосту по TCP и эмулирует терминал VT100/ANSI.
+    /// </summary>
+    public partial class TerminalView : System.Windows.Controls.UserControl
     {
+        /// <summary>TCP-клиент для подключения к серверу</summary>
         private TcpClient? _tcpClient;
+        /// <summary>Поток данных от сервера</summary>
         private NetworkStream? _stream;
+        /// <summary>Токен для отмены асинхронных операций при отключении</summary>
         private CancellationTokenSource? _cts;
 
         public TerminalView()
         {
             InitializeComponent();
-            TerminalTextBox.IsReadOnly = true;
+            TerminalTextBox.IsReadOnly = true; // Блокируем прямой ввод — всё через PreviewKeyDown
         }
 
+        /// <summary>
+        /// Подключается к удалённому хосту по Telnet (порт 23)
+        /// </summary>
         public async Task ConnectAsync(string host, int port)
         {
             _tcpClient = new TcpClient();
             await _tcpClient.ConnectAsync(host, port);
             _stream = _tcpClient.GetStream();
             _cts = new CancellationTokenSource();
-            _ = Task.Run(() => ReadLoop(_cts.Token));
+            _ = Task.Run(() => ReadLoop(_cts.Token)); // Запускаем чтение в фоне
         }
 
+        /// <summary>
+        /// Бесконечный цикл чтения данных от сервера.
+        /// Принимает байты, чистит Telnet-negotiation (IAC команды) и ANSI-escape последовательности.
+        /// </summary>
         private async Task ReadLoop(CancellationToken token)
         {
             byte[] buffer = new byte[8192];
@@ -40,6 +54,7 @@ namespace PepeTerm.Controls
                     int bytesRead = await _stream!.ReadAsync(buffer.AsMemory(0, buffer.Length), token);
                     if (bytesRead == 0) break;
 
+                    // Очищаем Telnet-команды (IAC — байт 0xFF)
                     var cleanBytes = new byte[bytesRead];
                     int cleanIndex = 0, i = 0;
                     while (i < bytesRead)
@@ -65,28 +80,35 @@ namespace PepeTerm.Controls
                     }
                 }
             }
-            catch (OperationCanceledException) { }
-            catch { }
+            catch (OperationCanceledException) { /* Нормальное завершение */ }
+            catch { /* Соединение разорвано */ }
         }
 
+        /// <summary>
+        /// Обрабатывает текст с ANSI escape-последовательностями.
+        /// Двигает курсор, удаляет символы по командам сервера.
+        /// </summary>
         private void ProcessAnsiText(string text)
         {
             int pos = 0;
             while (pos < text.Length)
             {
+                // Обнаружена escape-последовательность — ESC[
                 if (text[pos] == '\x1b' && pos + 1 < text.Length && text[pos + 1] == '[')
                 {
                     int end = pos + 2;
                     while (end < text.Length && !char.IsLetter(text[end])) end++;
                     if (end < text.Length) { ExecuteAnsiCommand(text.Substring(pos + 2, end - pos - 2), text[end]); pos = end + 1; continue; }
                 }
+
                 char c = text[pos];
                 switch (c)
                 {
-                    case '\b' or '\x7f': if (TerminalTextBox.Text.Length > 0) TerminalTextBox.Text = TerminalTextBox.Text[..^1]; break;
-                    case '\r': break;
-                    case '\n': TerminalTextBox.AppendText("\r\n"); break;
-                    default: TerminalTextBox.AppendText(c.ToString()); break;
+                    case '\b' or '\x7f': // Backspace — удаляем последний символ
+                        if (TerminalTextBox.Text.Length > 0) TerminalTextBox.Text = TerminalTextBox.Text[..^1]; break;
+                    case '\r': break; // Возврат каретки — игнорируем
+                    case '\n': TerminalTextBox.AppendText("\r\n"); break; // Перевод строки
+                    default: TerminalTextBox.AppendText(c.ToString()); break; // Обычный символ
                 }
                 pos++;
             }
@@ -94,20 +116,32 @@ namespace PepeTerm.Controls
             TerminalTextBox.CaretIndex = TerminalTextBox.Text.Length;
         }
 
+        /// <summary>
+        /// Исполняет ANSI escape-команду (движение курсора, удаление символов и т.д.)
+        /// </summary>
         private void ExecuteAnsiCommand(string code, char cmd)
         {
             if (!int.TryParse(code, out int n)) n = 1;
             switch (cmd)
             {
-                case 'D': if (TerminalTextBox.Text.Length >= n) TerminalTextBox.Text = TerminalTextBox.Text[..^n]; break;
-                case 'K': int ln = TerminalTextBox.Text.LastIndexOf('\n'); TerminalTextBox.Text = ln >= 0 ? TerminalTextBox.Text[..(ln + 1)] : ""; break;
-                case 'A' or 'B' or 'H' or 'F' or 'J': break;
+                case 'D': // Курсор влево — удалить n символов
+                    if (TerminalTextBox.Text.Length >= n) TerminalTextBox.Text = TerminalTextBox.Text[..^n]; break;
+                case 'K': // Очистить от курсора до конца строки
+                    int ln = TerminalTextBox.Text.LastIndexOf('\n');
+                    TerminalTextBox.Text = ln >= 0 ? TerminalTextBox.Text[..(ln + 1)] : ""; break;
+                case 'A' or 'B' or 'H' or 'F' or 'J': break; // Навигация — не трогаем
             }
         }
 
-        private async void TerminalTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        /// <summary>
+        /// Перехватывает нажатия клавиш и отправляет их серверу.
+        /// Блокирует стандартную обработку TextBox'ом.
+        /// </summary>
+        private async void TerminalTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (_stream is null || _tcpClient is null || !_tcpClient.Connected) return;
+
+            // Преобразуем клавишу в escape-последовательность или символ
             string? charToSend = e.Key switch
             {
                 Key.Enter => "\r",
@@ -123,10 +157,19 @@ namespace PepeTerm.Controls
                 Key.End => "\x1b[F",
                 _ => GetCharFromKey(e.Key, Keyboard.Modifiers)
             };
-            if (!string.IsNullOrEmpty(charToSend)) { byte[] data = Encoding.UTF8.GetBytes(charToSend); await _stream.WriteAsync(data.AsMemory(0, data.Length)); }
-            e.Handled = true;
+
+            if (!string.IsNullOrEmpty(charToSend))
+            {
+                byte[] data = Encoding.UTF8.GetBytes(charToSend);
+                await _stream.WriteAsync(data.AsMemory(0, data.Length));
+            }
+            e.Handled = true; // Блокируем стандартную обработку клавиши
         }
 
+        /// <summary>
+        /// Преобразует Key и модификаторы в строку символа.
+        /// Учитывает Shift и Ctrl.
+        /// </summary>
         private static string? GetCharFromKey(Key key, ModifierKeys modifiers)
         {
             if (key >= Key.A && key <= Key.Z) { string l = key.ToString(); if (modifiers.HasFlag(ModifierKeys.Control)) return ((char)(l[0] - 'A' + 1)).ToString(); return modifiers.HasFlag(ModifierKeys.Shift) ? l : l.ToLower(); }
@@ -136,6 +179,7 @@ namespace PepeTerm.Controls
             return s;
         }
 
+        /// <summary>Закрывает соединение и освобождает ресурсы</summary>
         public void Disconnect() { _cts?.Cancel(); _stream?.Close(); _tcpClient?.Close(); }
     }
 }
