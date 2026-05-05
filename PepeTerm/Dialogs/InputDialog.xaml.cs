@@ -20,6 +20,9 @@ namespace PepeTerm.Dialogs
         public InputDialog(string title, string label)
         {
             InitializeComponent();
+            var iconPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "pepe.ico");
+            if (System.IO.File.Exists(iconPath))
+                this.Icon = new System.Windows.Media.Imaging.BitmapImage(new Uri(iconPath));
             Owner = System.Windows.Application.Current.MainWindow;
             Title = title;
             LabelBlock.Text = label;

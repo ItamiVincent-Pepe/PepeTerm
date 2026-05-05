@@ -17,6 +17,9 @@ namespace PepeTerm.Dialogs
         public SerialSettingsDialog(int baudRate, int dataBits, Parity parity, StopBits stopBits)
         {
             InitializeComponent();
+            var iconPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "pepe.ico");
+            if (System.IO.File.Exists(iconPath))
+                this.Icon = new System.Windows.Media.Imaging.BitmapImage(new Uri(iconPath));
             Owner = System.Windows.Application.Current.MainWindow; // Привязываем к главному окну
 
             // Заполняем выпадающие списки значениями

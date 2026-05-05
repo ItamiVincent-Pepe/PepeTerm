@@ -19,6 +19,8 @@ namespace PepeTerm
         public MainWindow()
         {
             InitializeComponent();
+            this.Icon = new System.Windows.Media.Imaging.BitmapImage(
+    new Uri(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "pepe.ico")));
 
             var loaded = HostStorageService.Load();
             foreach (var item in loaded) _treeItems.Add(item);
@@ -50,9 +52,12 @@ namespace PepeTerm
             };
 
             // ===== ИКОНКА В ТРЕЕ =====
+            var iconPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "pepe.ico");
             _trayIcon = new System.Windows.Forms.NotifyIcon
             {
-                Icon = System.Drawing.SystemIcons.Application,
+                Icon = System.IO.File.Exists(iconPath)
+                    ? new System.Drawing.Icon(iconPath)
+                    : System.Drawing.SystemIcons.Application,
                 Text = "🐸 PepeTerm",
                 Visible = false
             };
