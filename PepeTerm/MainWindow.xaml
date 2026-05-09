@@ -4,7 +4,7 @@
         Title="🐸 PepeTerm" Height="680" Width="1546"
         Background="{StaticResource BackgroundColor}"
         WindowStartupLocation="CenterScreen">
-    
+
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="250"/>
@@ -47,8 +47,6 @@
                    DragOver="TreeView_DragOver"/>
             </Grid>
         </Border>
-        
-        
 
         <!-- Основная область -->
         <Grid Grid.Column="1" Grid.RowSpan="2">
@@ -68,10 +66,6 @@
                                  Margin="0,0,8,0"
                                  Style="{StaticResource RadioStyle}"
                                  Checked="Protocol_Changed"/>
-                    <RadioButton x:Name="RadioSerial" Content="Serial"
-                                 Margin="0,0,10,0"
-                                 Style="{StaticResource RadioStyle}"
-                                 Checked="Protocol_Changed"/>
 
                     <TextBlock Text="Имя:" Style="{StaticResource LabelStyle}"/>
                     <TextBox x:Name="NameBox" Width="140" Margin="0,0,10,0" Style="{StaticResource InputStyle}"/>
@@ -87,12 +81,6 @@
 
                     <TextBlock x:Name="PasswordLabel" Text="Пароль:" Style="{StaticResource LabelStyle}"/>
                     <PasswordBox x:Name="PasswordBox" Width="100" Margin="0,0,10,0" Style="{StaticResource PasswordStyle}"/>
-
-                    <Button x:Name="SerialSettingsBtn" Content="⚙️"
-                            ToolTip="Настройки COM-порта" Visibility="Collapsed"
-                            Width="30" Height="26" Margin="0,0,10,0"
-                            Style="{StaticResource SecondaryButton}"
-                            Click="SerialSettings_Click"/>
 
                     <Button x:Name="ConnectButton" Content="⚡ Подключиться"
                             Width="120" Style="{StaticResource PrimaryButton}"

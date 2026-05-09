@@ -56,12 +56,10 @@
         <StackPanel Grid.Row="8" Orientation="Horizontal"
                     HorizontalAlignment="Right" Margin="0,10,0,0">
             <Button Content="OK" Width="70"
-                    Style="{StaticResource PrimaryButton}"
-                    Click="OkButton_Click"/>
+                    Style="{StaticResource PrimaryButton}"/>
             <Button Content="Отмена" Width="70"
                     Style="{StaticResource SecondaryButton}"
-                    Margin="10,0,0,0"
-                    Click="CancelButton_Click"/>
+                    Margin="10,0,0,0"/>
         </StackPanel>
     </Grid>
 </Window>
