@@ -37,10 +37,14 @@
                 </StackPanel>
 
                 <TreeView x:Name="TreeView" Grid.Row="2"
-                          Background="{StaticResource PanelBrush}"
-                          Foreground="{StaticResource TextSecondaryBrush}"
-                          BorderBrush="Transparent" Margin="5,0,5,5"
-                          MouseDoubleClick="TreeView_MouseDoubleClick"/>
+                   Background="{StaticResource PanelBrush}"
+                   Foreground="{StaticResource TextSecondaryBrush}"
+                   BorderBrush="Transparent" Margin="5,0,5,5"
+                   MouseDoubleClick="TreeView_MouseDoubleClick"
+                   AllowDrop="True"
+                   MouseMove="TreeView_MouseMove"
+                   Drop="TreeView_Drop"
+                   DragOver="TreeView_DragOver"/>
             </Grid>
         </Border>
         

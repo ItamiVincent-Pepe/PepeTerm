@@ -11,8 +11,10 @@
 			<None Update="pepe.ico">
 				<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			</None>
-		<PackageReference Include="SSH.NET" Version="2025.1.0" />
-		<PackageReference Include="System.IO.Ports" Version="10.0.7" />
+	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Include="Microsoft.Windows.Console.ConPTY" Version="1.24.260303001" />
+	  <PackageReference Include="System.IO.Ports" Version="10.0.7" />
 	</ItemGroup>
 	
 </Project>
