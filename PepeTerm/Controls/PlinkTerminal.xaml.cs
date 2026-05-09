@@ -18,11 +18,12 @@ namespace PepeTerm.Controls
     {
         private Process? _process;
         private CancellationTokenSource? _cts;
+        private int _protectedLength = 0; // Вывод сервера до этой позиции защищён
 
         public PlinkTerminal()
         {
             InitializeComponent();
-            TerminalTextBox.IsReadOnly = false;
+            TerminalTextBox.IsReadOnly = true;
         }
 
         /// <summary>
@@ -64,13 +65,6 @@ namespace PepeTerm.Controls
 
             _process.Start();
             _cts = new CancellationTokenSource();
-
-            // Для SSH — подтверждаем ключ
-            if (protocol == "SSH")
-            {
-                await _process.StandardInput.WriteAsync("y\ny\n");
-                await _process.StandardInput.FlushAsync();
-            }
 
             _ = Task.Run(() => ReadOutput(_cts.Token));
             _ = Task.Run(() => ReadError(_cts.Token));
@@ -120,6 +114,7 @@ namespace PepeTerm.Controls
                     {
                         TerminalTextBox.AppendText(text);
                         TerminalTextBox.ScrollToEnd();
+                        _protectedLength = TerminalTextBox.Text.Length; // Защита вывода сервера
                     });
                 }
             }
@@ -144,6 +139,7 @@ namespace PepeTerm.Controls
                     {
                         TerminalTextBox.AppendText(text);
                         TerminalTextBox.ScrollToEnd();
+                        _protectedLength = TerminalTextBox.Text.Length; // Защита вывода сервера
                     });
                 }
             }
@@ -169,10 +165,20 @@ namespace PepeTerm.Controls
             {
                 await _process.StandardInput.WriteAsync(text);
 
-                if (e.Key == Key.Back && TerminalTextBox.Text.Length > 0)
+                if (e.Key == Key.Back)
                 {
-                    TerminalTextBox.Text = TerminalTextBox.Text[..^1];
-                    TerminalTextBox.CaretIndex = TerminalTextBox.Text.Length;
+                    System.Windows.MessageBox.Show(
+                        $"Caret: {TerminalTextBox.CaretIndex}\n" +
+                        $"Protected: {_protectedLength}\n" +
+                        $"Text length: {TerminalTextBox.Text.Length}");
+                }
+
+                // Backspace только в зоне ввода (после защищённой границы)
+                if (e.Key == Key.Back && TerminalTextBox.CaretIndex > _protectedLength && TerminalTextBox.Text.Length > 0)
+                {
+                    int pos = TerminalTextBox.CaretIndex;
+                    TerminalTextBox.Text = TerminalTextBox.Text.Remove(pos - 1, 1);
+                    TerminalTextBox.CaretIndex = pos - 1;
                 }
 
                 e.Handled = true;

@@ -9,7 +9,7 @@
                  FontFamily="Consolas"
                  FontSize="14"
                  AcceptsReturn="True"
-                 IsReadOnly="False"
+                 IsReadOnly="True"
                  VerticalScrollBarVisibility="Visible"
                  HorizontalScrollBarVisibility="Auto"
                  PreviewKeyDown="TerminalTextBox_PreviewKeyDown"/>
